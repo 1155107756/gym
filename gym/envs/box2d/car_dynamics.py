@@ -6,13 +6,17 @@ This simulation is a bit more detailed, with wheels rotation.
 
 Created by Oleg Klimov. Licensed on the same terms as the rest of OpenAI Gym.
 """
+import copy
 
 import numpy as np
 import math
 import Box2D
+import pygame
 from Box2D.b2 import (edgeShape, circleShape, fixtureDef, polygonShape, revoluteJointDef, contactListener, shape)
 
-SIZE = 0.02
+from gym.envs.classic_control.rendering import Transform
+
+SIZE = 0.2
 ENGINE_POWER = 100000000*SIZE*SIZE
 WHEEL_MOMENT_OF_INERTIA = 4000*SIZE*SIZE
 FRICTION_LIMIT = 1000000*SIZE*SIZE     # friction ~= mass ~= size^2 (calculated implicitly using density)
@@ -238,6 +242,37 @@ class Car:
                     (+WHEEL_W*SIZE, +WHEEL_R*c2*SIZE), (-WHEEL_W*SIZE, +WHEEL_R*c2*SIZE)
                     ]
                 viewer.draw_polygon([trans*v for v in white_poly], color=WHEEL_WHITE)
+
+    def draw_for_pygame(self, screen, draw_particles=True):
+        #if draw_particles:
+            #for p in self.particles:
+                #viewer.draw_polyline(p.poly, color=p.color, linewidth=5)
+        for obj in self.drawlist:
+            for f in obj.fixtures:
+                trans = f.body.transform
+                tmp = Box2D.b2Transform()
+                tmp.position = trans.position
+                tmp.angle = trans.angle
+                trans = tmp
+                path = [trans * v for v in f.shape.vertices]
+                pygame.draw.polygon(screen, obj.color, path)
+
+                if "phase" not in obj.__dict__: continue
+                a1 = obj.phase
+                a2 = obj.phase + 1.2  # radians
+                s1 = math.sin(a1)
+                s2 = math.sin(a2)
+                c1 = math.cos(a1)
+                c2 = math.cos(a2)
+                if s1 > 0 and s2 > 0: continue
+                if s1 > 0: c1 = np.sign(c1)
+                if s2 > 0: c2 = np.sign(c2)
+                white_poly = [
+                    (-WHEEL_W*SIZE, +WHEEL_R*c1*SIZE), (+WHEEL_W*SIZE, +WHEEL_R*c1*SIZE),
+                    (+WHEEL_W*SIZE, +WHEEL_R*c2*SIZE), (-WHEEL_W*SIZE, +WHEEL_R*c2*SIZE)
+                    ]
+                white_poly_path = [trans * v for v in white_poly]
+                pygame.draw.polygon(screen, WHEEL_WHITE, white_poly_path)
 
     def _create_particle(self, point1, point2, grass):
         class Particle:

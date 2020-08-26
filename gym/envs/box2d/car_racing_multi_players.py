@@ -133,6 +133,7 @@ class CarRacing(gym.Env, EzPickle):
         self.prev_reward = 0.0
         self.verbose = verbose
         self.num_player = num_player
+        self.track = None
         self.fd_tile = fixtureDef(
             shape=polygonShape(vertices=[(0, 0), (1, 0), (1, -1), (0, -1)])
         )
@@ -441,7 +442,7 @@ class CarRacing(gym.Env, EzPickle):
             VP_W = int(pixel_scale * WINDOW_W)
             VP_H = int(pixel_scale * WINDOW_H)
 
-        gl.glViewport(0, 0, VP_W, VP_H)
+        #gl.glViewport(0, 0, VP_W, VP_H)
         t.enable()
         self.render_road()
         for geom in self.viewer.onetime_geoms:
@@ -454,10 +455,10 @@ class CarRacing(gym.Env, EzPickle):
             win.flip()
             return self.viewer.isopen
 
-        image_data = pyglet.image.get_buffer_manager().get_color_buffer().get_image_data()
-        arr = np.fromstring(image_data.get_data(), dtype=np.uint8, sep='')
-        arr = arr.reshape(VP_H, VP_W, 4)
-        arr = arr[::-1, :, 0:3]
+        #image_data = pyglet.image.get_buffer_manager().get_color_buffer().get_image_data()
+        #arr = np.fromstring(image_data.get_data(), dtype=np.uint8, sep='')
+        #arr = arr.reshape(VP_H, VP_W, 4)
+        #arr = arr[::-1, :, 0:3]
 
         return arr
 
