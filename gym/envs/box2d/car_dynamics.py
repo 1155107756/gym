@@ -16,7 +16,7 @@ from Box2D.b2 import (edgeShape, circleShape, fixtureDef, polygonShape, revolute
 
 from gym.envs.classic_control.rendering import Transform
 
-SIZE = 0.2
+SIZE = 0.02
 ENGINE_POWER = 100000000*SIZE*SIZE
 WHEEL_MOMENT_OF_INERTIA = 4000*SIZE*SIZE
 FRICTION_LIMIT = 1000000*SIZE*SIZE     # friction ~= mass ~= size^2 (calculated implicitly using density)
@@ -225,7 +225,7 @@ class Car:
         for obj in self.drawlist:
             for f in obj.fixtures:
                 trans = f.body.transform
-                path = [trans*v for v in f.shape.vertices]
+                path = [(trans*v) for v in f.shape.vertices]
                 viewer.draw_polygon(path, color=obj.color)
                 if "phase" not in obj.__dict__: continue
                 a1 = obj.phase
@@ -243,7 +243,8 @@ class Car:
                     ]
                 viewer.draw_polygon([trans*v for v in white_poly], color=WHEEL_WHITE)
 
-    def draw_for_pygame(self, screen, draw_particles=True):
+
+    def draw_for_pygame(self, screen, draw_particles=True, offset=(0,0), scale=1):
         #if draw_particles:
             #for p in self.particles:
                 #viewer.draw_polyline(p.poly, color=p.color, linewidth=5)
@@ -251,12 +252,11 @@ class Car:
             for f in obj.fixtures:
                 trans = f.body.transform
                 tmp = Box2D.b2Transform()
-                tmp.position = trans.position
-                tmp.angle = trans.angle
-                trans = tmp
-                path = [trans * v for v in f.shape.vertices]
-                pygame.draw.polygon(screen, obj.color, path)
-
+                #tmp.position = trans.position
+                #tmp.angle = trans.angle
+                #trans = Box2D.b2Transform()
+                path = [scale*(trans*v)-offset for v in f.shape.vertices]
+                pygame.draw.polygon(screen, [255 * i for i in obj.color], path)
                 if "phase" not in obj.__dict__: continue
                 a1 = obj.phase
                 a2 = obj.phase + 1.2  # radians
@@ -271,7 +271,7 @@ class Car:
                     (-WHEEL_W*SIZE, +WHEEL_R*c1*SIZE), (+WHEEL_W*SIZE, +WHEEL_R*c1*SIZE),
                     (+WHEEL_W*SIZE, +WHEEL_R*c2*SIZE), (-WHEEL_W*SIZE, +WHEEL_R*c2*SIZE)
                     ]
-                white_poly_path = [trans * v for v in white_poly]
+                white_poly_path = [scale*(trans*v-offset) for v in white_poly]
                 pygame.draw.polygon(screen, WHEEL_WHITE, white_poly_path)
 
     def _create_particle(self, point1, point2, grass):

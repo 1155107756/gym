@@ -34,6 +34,7 @@ import math
 import numpy as np
 
 import Box2D
+import pygame
 from Box2D.b2 import fixtureDef
 from Box2D.b2 import polygonShape
 from Box2D.b2 import contactListener
@@ -43,8 +44,8 @@ from gym import spaces
 from gym.envs.box2d.car_dynamics import Car
 from gym.utils import seeding, EzPickle
 
-import pyglet
-from pyglet import gl
+#import pyglet
+#from pyglet import gl
 
 STATE_W = 96   # less than Atari 160x192
 STATE_H = 96
@@ -350,6 +351,7 @@ class CarRacing(gym.Env, EzPickle):
                 )
         for i in range(self.num_player):
             self.cars.append(Car(self.world, *self.track[0][1:4]))
+            #self.cars.append(Car(self.world, 1, 100 , 100))
 
         return self.step(None)[0]
 
@@ -364,7 +366,7 @@ class CarRacing(gym.Env, EzPickle):
         self.world.Step(1.0/FPS, 6*30, 2*30)
         self.t += 1.0/FPS
 
-        self.state = self.render("state_pixels")
+        #self.state = self.render("state_pixels")
 
         step_reward = 0
         done = False
@@ -382,9 +384,10 @@ class CarRacing(gym.Env, EzPickle):
                 done = True
                 step_reward = -100'''
 
-        return self.state, step_reward, done, {}
+        #return self.state, step_reward, done, {}
+        return step_reward, done, {}
 
-    def render(self, mode='human'):
+    '''def render(self, mode='human'):
         assert mode in ['human', 'state_pixels', 'rgb_array']
         if self.viewer is None:
             from gym.envs.classic_control import rendering
@@ -405,17 +408,19 @@ class CarRacing(gym.Env, EzPickle):
 
         # Animate zoom first second:
         #zoom = 0.1 * SCALE * max(1 - self.t, 0) + ZOOM * SCALE * min(self.t, 1)
-        zoom = 4
+        zoom = 8
         scroll_x = self.cars[0].hull.position[0]
         scroll_y = self.cars[0].hull.position[1]
         angle = -self.cars[0].hull.angle
         vel = self.cars[0].hull.linearVelocity
-        if np.linalg.norm(vel) > 0.5:
-            angle = math.atan2(vel[0], vel[1])
+        #if np.linalg.norm(vel) > 0.5:
+            #angle = math.atan2(vel[0], vel[1])
         self.transform.set_scale(zoom, zoom)
         self.transform.set_translation(
-            WINDOW_W/2 - (scroll_x * zoom * math.cos(angle) - scroll_y * zoom * math.sin(angle)),
-            WINDOW_H/4 - (scroll_x * zoom * math.sin(angle) + scroll_y * zoom * math.cos(angle))
+            WINDOW_W/2
+            - (scroll_x * zoom * math.cos(angle) - scroll_y * zoom * math.sin(angle)),
+            WINDOW_H/2
+            - (scroll_x * zoom * math.sin(angle) + scroll_y * zoom * math.cos(angle))
         )
         self.transform.set_rotation(angle)
 
@@ -460,14 +465,14 @@ class CarRacing(gym.Env, EzPickle):
         #arr = arr.reshape(VP_H, VP_W, 4)
         #arr = arr[::-1, :, 0:3]
 
-        return arr
+        return arr'''
 
     def close(self):
         if self.viewer is not None:
             self.viewer.close()
             self.viewer = None
 
-    def render_road(self):
+    '''def render_road(self):
         gl.glBegin(gl.GL_QUADS)
         gl.glColor4f(0.4, 0.8, 0.4, 1.0)
         gl.glVertex3f(-PLAYFIELD, +PLAYFIELD, 0)
@@ -485,10 +490,10 @@ class CarRacing(gym.Env, EzPickle):
         for poly, color in self.road_poly:
             gl.glColor4f(color[0], color[1], color[2], 1)
             for p in poly:
-                gl.glVertex3f(p[0], p[1], 0)
-        gl.glEnd()
+                gl.glVertex3f(p[0], p[1], 1)
+        gl.glEnd()'''
 
-    def render_indicators(self, W, H):
+    '''def render_indicators(self, W, H):
         gl.glBegin(gl.GL_QUADS)
         s = W / 40.0
         h = H / 40.0
@@ -524,12 +529,18 @@ class CarRacing(gym.Env, EzPickle):
         horiz_ind(30, -0.8 * self.car.hull.angularVelocity, (1, 0, 0))
         gl.glEnd()
         self.score_label.text = "%04i" % self.reward
-        self.score_label.draw()
+        self.score_label.draw()'''
+
+    def render_road_for_pygame(self, screen, offset=(0,0), scale=1):
+        screen.fill((0.4 * 255, 0.8 * 255, 0.4 * 255))
+        for poly, color in self.road_poly:
+            path = [(scale * v[0] - offset[0], scale * v[1] - offset[1]) for v in poly]
+            pygame.draw.polygon(screen, [255 * i for i in color], path)
 
 
 if __name__ == "__main__":
-    from pyglet.window import key
-    a = [[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]]
+    #from pyglet.window import key
+    '''a = [[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]]
 
     def key_press(k, mod):
         global restart
@@ -549,15 +560,15 @@ if __name__ == "__main__":
         if k == key.UP:    a[0][1] = 0
         if k == key.DOWN:  a[0][2] = 0
         if k == key.A  and a[1][0] == -1.0: a[1][0] = 0
-        if k == key.S and a[1][0] == +1.0: a[1][0] = 0
+        if k == key.D and a[1][0] == +1.0: a[1][0] = 0
         if k == key.W:    a[1][1] = 0
-        if k == key.S:  a[1][2] = 0
+        if k == key.S:  a[1][2] = 0'''
 
 
-    env = CarRacing(num_player=2)
+    env = CarRacing(num_player=1)
     env.render()
-    env.viewer.window.on_key_press = key_press
-    env.viewer.window.on_key_release = key_release
+    #env.viewer.window.on_key_press = key_press
+    #env.viewer.window.on_key_release = key_release
     record_video = False
     if record_video:
         from gym.wrappers.monitor import Monitor
