@@ -330,6 +330,7 @@ class CarRacing(gym.Env, EzPickle):
                     )
                 )
         self.track = track
+        
         return True
 
     def reset(self):
@@ -531,10 +532,15 @@ class CarRacing(gym.Env, EzPickle):
         self.score_label.text = "%04i" % self.reward
         self.score_label.draw()'''
 
-    def render_road_for_pygame(self, screen, offset=(0,0), scale=1):
+    def render_road_for_pygame(self, screen,  W_W,W_H, offset=(0,0), angle=0, scale=1):
         screen.fill((0.4 * 255, 0.8 * 255, 0.4 * 255))
         for poly, color in self.road_poly:
-            path = [(scale * v[0] - offset[0], scale * v[1] - offset[1]) for v in poly]
+            tmp = Box2D.b2Transform()
+            tmp.position = (0, 0)
+            tmp.angle = -angle
+            # trans = Box2D.b2Transform()
+            path_tmp = [(-v[0] + offset[0], -v[1] + offset[1]) for v in poly]
+            path = [scale*(tmp*v) + (W_W/2, W_H/2) for v in path_tmp]
             pygame.draw.polygon(screen, [255 * i for i in color], path)
 
 

@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
 
     pygame.init()
-    size = width, height = 1800,1200
+    size = width, height = 1920,1080
     speed = [2, 2]
     white = 255, 255, 255
     screen = pygame.display.set_mode(size, pygame.RESIZABLE)
@@ -75,13 +75,32 @@ if __name__ == "__main__":
     env.close()'''
 
     ''''''
-    offset = (width/2, height/2)
+    #offset = size
+    camera_offset = (0,0)
+    camera_scale = 1
+    camera_angle = 0
+    camera_follow = -1
     while True:
         screen.fill(white)
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
+                if event.key == pygame.K_0:
+                    camera_follow = -1
+                    camera_offset = (0,0)
+                    camera_scale = 1
+                    camera_angle = 0
+                elif event.key == pygame.K_1:
+                    camera_follow = 0
+                    camera_offset = env.cars[0].hull.position
+                    camera_angle = env.cars[0].hull.angle
+                    camera_scale = 3
+                elif event.key == pygame.K_2:
+                    camera_follow = 1
+                    camera_offset = env.cars[1].hull.position
+                    camera_angle = env.cars[1].hull.angle
+                    camera_scale = 3
+                elif event.key == pygame.K_a:
                     a[1][0] = +1.0
                 elif event.key == pygame.K_d:
                     a[1][0] = -1.0
@@ -118,8 +137,11 @@ if __name__ == "__main__":
         #fake_screen.blit(playground, (0, 0))
         #screen.blit(pygame.transform.rotozoom(fake_screen, 0, 10), (0,0))
         env.step(a)
-        #env.render()
-        env.render_road_for_pygame(screen, offset=(-width/2, -height/2), scale=3)
-        env.cars[0].draw_for_pygame(screen, offset=(-width/2, -height/2), scale=3)
-        env.cars[1].draw_for_pygame(screen, offset=(-width/2, -height/2), scale=3)
+        if(camera_follow != -1):
+            camera_offset = env.cars[camera_follow].hull.position
+            camera_angle = env.cars[camera_follow].hull.angle
+            camera_scale = 3
+        env.render_road_for_pygame(screen, width, height, offset=camera_offset, angle=camera_angle, scale=camera_scale)
+        env.cars[0].draw_for_pygame(screen, width, height, offset=camera_offset, angle=camera_angle, scale=camera_scale)
+        env.cars[1].draw_for_pygame(screen, width, height, offset=camera_offset, angle=camera_angle, scale=camera_scale)
         pygame.display.update()
